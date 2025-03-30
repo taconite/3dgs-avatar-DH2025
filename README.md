@@ -20,6 +20,17 @@ If you find our code useful, please cite:
 ```
 
 ## Installation
+### Euler-specific Setup
+Run the following to load the required modules (`eth_proxy` is the network proxy that allows you to access the internet on a compute node - it is not necessary on the login node):
+```
+module purge
+module load stack/2024-06
+module load cuda/11.8.0 eth_proxy
+export CC=gcc-11    # CUDA 11.8 requires GCC 11
+export CXX=g++-11   # same as above
+```
+
+
 ### Environment Setup
 This repository has been tested on the following platform:
 1) Python 3.7.13, PyTorch 1.12.1 with CUDA 11.6 and cuDNN 8.3.2, Ubuntu 22.04/CentOS 7.9.2009
@@ -47,9 +58,10 @@ pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/to
 ```
 
 ### SMPL Setup
-Download `SMPL v1.0 for Python 2.7` from [SMPL website](https://smpl.is.tue.mpg.de/) (for male and female models), and `SMPLIFY_CODE_V2.ZIP` from [SMPLify website](https://smplify.is.tue.mpg.de/) (for the neutral model). After downloading, inside `SMPL_python_v.1.0.0.zip`, male and female models are `smpl/models/basicmodel_m_lbs_10_207_0_v1.0.0.pkl` and `smpl/models/basicModel_f_lbs_10_207_0_v1.0.0.pkl`, respectively. Inside `mpips_smplify_public_v2.zip`, the neutral model is `smplify_public/code/models/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl`. Remove the chumpy objects in these .pkl models using [this code](https://github.com/vchoutas/smplx/tree/master/tools) under a Python 2 environment (you can create such an environment with conda). Finally, rename the newly generated .pkl files and copy them to subdirectories under `./body_models/smpl/`. Eventually, the `./body_models` folder should have the following structure:
+Please reach out to the TAs to get body model assets.  After you get the assets, extract them to the project directory. It should have the following structure: 
 ```
 body_models
+ └-- misc
  └-- smpl
     ├-- male
     |   └-- model.pkl
@@ -59,16 +71,8 @@ body_models
         └-- model.pkl
 ```
 
-Then, run the following script to extract necessary SMPL parameters used in our code:
-```
-python extract_smpl_parameters.py
-```
-The extracted SMPL parameters will be saved into `./body_models/misc/`.
-
 ## Dataset preparation
-Due to license issues, we cannot publicly distribute our preprocessed ZJU-MoCap and PeopleSnapshot data. 
-Please follow the instructions of [ARAH](https://github.com/taconite/arah-release) to download and preprocess the datasets.
-For PeopleSnapshot, we use the optimized SMPL parameters from Anim-NeRF [here](https://drive.google.com/drive/folders/1tbBJYstNfFaIpG-WBT6BnOOErqYUjn6V?usp=drive_link).
+Please follow the steps in [DATASET.md](DATASET.md).
 
 ## Results on ZJU-MoCap
 For easy comparison to our approach, we also store all our pretrained models and renderings on the ZJU-MoCap dataset [here](https://drive.google.com/drive/folders/1-miCqOPoOO1XATQECyHz1qgocrtTSD8L?usp=drive_link).
@@ -78,8 +82,6 @@ To train new networks from scratch, run
 ```shell
 # ZJU-MoCap
 python train.py dataset=zjumocap_377_mono
-# PeopleSnapshot
-python train.py dataset=ps_female_3 option=iter30k pose_correction=none 
 ```
 To train on a different subject, simply choose from the configs in `configs/dataset/`.
 
@@ -90,8 +92,6 @@ To evaluate the method for a specified subject, run
 ```shell
 # ZJU-MoCap
 python render.py mode=test dataset.test_mode=view dataset=zjumocap_377_mono
-# PeopleSnapshot
-python render.py mode=test dataset.test_mode=pose pose_correction=none dataset=ps_female_3
 ```
 
 ## Test on out-of-distribution poses
